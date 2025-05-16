@@ -10,7 +10,7 @@ try {
 }
 
 // Updated selectors based on latest Asana UI
-const TASK_ROW_SELECTOR = '.TaskRow, .SpreadsheetRow'; 
+const TASK_ROW_SELECTOR = '.TaskPane'; 
 const TASK_COMPLETED_CLASS = 'TaskRow--isCompleted, .SpreadsheetTaskCompletionStatus--completed';
 // More comprehensive selector to catch the completion button in various Asana interfaces
 const TASK_COMPLETED_CHECKBOX_SELECTOR = 'div[role="button"].TaskCompletionToggleButton, div[role="button"].SpreadsheetTaskCompletionCell, div[aria-label*="Mark complete"], div[aria-label*="Marcar como"], .CheckboxButton, .TaskCompletionButton'; 
@@ -93,7 +93,7 @@ function findParentTaskRow(element) {
             let parent = element.parentElement;
             for (let i = 0; i < 8 && parent; i++) {
                 if (parent.classList.length > 0 || parent.id) {
-                    // console.log(`Level ${i} parent:`, parent);
+                    console.log(`Level ${i} parent:`, parent);
                     // Look for common task-related container classes
                     if (parent.classList.contains('TaskCell') || 
                         parent.classList.contains('TaskRow') || 
@@ -338,26 +338,27 @@ function showConfetti() {
 }
 
 // Main detection mechanism using MutationObserver
-const observer = new MutationObserver((mutationsList) => {
-    for (const mutation of mutationsList) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-            const targetElement = mutation.target;
-            console.log('Class change detected on:', targetElement);
+// const observer = new MutationObserver((mutationsList) => {
+//     for (const mutation of mutationsList) {
+//         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+//             const targetElement = mutation.target;
+//             console.log('Class change detected on:', targetElement);
             
-            if (targetElement.matches && 
-                targetElement.matches(TASK_ROW_SELECTOR) && 
-                targetElement.classList.contains(TASK_COMPLETED_CLASS)) {
+//             if (targetElement.matches && 
+//                 targetElement.matches(TASK_ROW_SELECTOR) && 
+//                 targetElement.classList.contains(TASK_COMPLETED_CLASS)) {
+//                 console.log('Task completed detected:', targetElement);
                 
-                // Only celebrate if this is a new completion (not previously completed)
-                const wasAlreadyCompleted = mutation.oldValue && mutation.oldValue.includes(TASK_COMPLETED_CLASS);
-                if (!wasAlreadyCompleted) {
-                    console.log('New task completion detected!');
-                    processCompletedTask(targetElement);
-                }
-            }
-        }
-    }
-});
+//                 // Only celebrate if this is a new completion (not previously completed)
+//                 const wasAlreadyCompleted = mutation.oldValue && mutation.oldValue.includes(TASK_COMPLETED_CLASS);
+//                 if (!wasAlreadyCompleted) {
+//                     console.log('New task completion detected!');
+//                     processCompletedTask(targetElement);
+//                 }
+//             }
+//         }
+//     }
+// });
 
 // Backup method using click detection - Enhanced to better detect Asana's completion pattern
 document.addEventListener('click', function(event) {
@@ -377,8 +378,7 @@ document.addEventListener('click', function(event) {
         const isMarkCompleteButton = 
             buttonText.includes('mark complete') || 
             buttonText.includes('marcar como') ||
-            buttonText.includes('complete') ||
-            clickedCompleteButton.classList.contains('TaskCompletionToggleButton');
+            clickedCompleteButton.classList.contains('TaskCompletionToggleButton--isNotPressed');
         
         console.log('Button text:', buttonText, 'Is mark complete button:', isMarkCompleteButton);
         
