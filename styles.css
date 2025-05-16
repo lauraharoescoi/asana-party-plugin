@@ -7,27 +7,30 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0.8);
-    padding: 40px 60px;
+    padding: 50px 70px;
     border-radius: 20px;
     color: white;
     z-index: 10000;
-    font-size: 28px;
+    font-size: 32px;
     text-align: center;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.2) inset;
     opacity: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: bold;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 800;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
     overflow: hidden;
-    min-width: 300px;
-    transition: opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    min-width: 400px;
+    max-width: 80%;
+    transition: opacity 0.5s ease-out, transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    background-size: 300% 300%;
+    animation: gradient-shift 5s ease infinite;
 }
 
 /* Show/hide animations */
 .celebration-visible {
     opacity: 1 !important;
     transform: translate(-50%, -50%) scale(1) !important;
-    animation: overlay-drift 3s ease-in-out infinite alternate;
+    animation: overlay-drift 3s ease-in-out infinite alternate, gradient-shift 5s ease infinite;
 }
 
 .celebration-hiding {
@@ -37,24 +40,24 @@
 
 /* Style variations by task size */
 .celebration-small {
-    background-color: #3498db;
+    background: linear-gradient(135deg, #3498db, #2980b9, #3498db);
 }
 
 .celebration-medium {
-    background-color: #f1c40f;
+    background: linear-gradient(135deg, #f1c40f, #f39c12, #f1c40f);
 }
 
 .celebration-large {
-    background-color: #e74c3c;
+    background: linear-gradient(135deg, #e74c3c, #c0392b, #e74c3c);
 }
 
 .celebration-xlarge {
-    background-color: #9b59b6;
-    font-size: 36px;
+    background: linear-gradient(135deg, #9b59b6, #8e44ad, #9b59b6);
+    font-size: 40px;
 }
 
 .celebration-default {
-    background-color: #4CAF50;
+    background: linear-gradient(135deg, #4CAF50, #2E7D32, #4CAF50);
 }
 
 /* Background image support */
@@ -71,20 +74,121 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0,0,0,0.2);
     border-radius: 20px;
+    backdrop-filter: blur(2px);
 }
 
 /* Content positioning */
 .celebration-content {
     position: relative;
     z-index: 2;
+    line-height: 1.4;
 }
 
-.celebration-content small {
-    font-size: 0.6em;
-    opacity: 0.8;
+.celebration-emoji {
+    font-size: 120%;
+    display: inline-block;
+    animation: emoji-bounce 1s ease infinite alternate;
+    margin: 0 10px;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
 }
+
+.celebration-title {
+    margin: 0 0 10px 0;
+    letter-spacing: 1px;
+}
+
+.celebration-message {
+    font-size: 70%;
+    margin: 15px 0 5px;
+    opacity: 0.9;
+    font-weight: 600;
+    font-style: italic;
+}
+
+.celebration-details {
+    font-size: 50%;
+    opacity: 0.8;
+    margin-top: 15px;
+    font-weight: 500;
+}
+
+/* Animation for the gradient background */
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Animation for emoji bounce */
+@keyframes emoji-bounce {
+    0% { transform: scale(1) rotate(-5deg); }
+    100% { transform: scale(1.3) rotate(5deg); }
+}
+
+/* ============= FLOATING GIF STYLES ============= */
+
+/* Floating celebration GIFs */
+.floating-celebration-gif {
+    position: fixed;
+    z-index: 9990;
+    pointer-events: none;
+    width: 250px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    
+    /* Position using custom properties */
+    left: var(--gif-left, 50%);
+    top: var(--gif-top, 50%);
+    transform: translate(-50%, -50%) scale(0) rotate(var(--gif-rotation, 0deg));
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.gif-visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(var(--gif-scale, 1)) rotate(var(--gif-rotation, 0deg));
+    animation: gif-float 3s ease-in-out infinite alternate;
+}
+
+.gif-hiding {
+    animation: gif-disappear 0.5s forwards !important;
+}
+
+@keyframes gif-appear {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0) rotate(var(--gif-rotation, 0deg));
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(var(--gif-scale, 1)) rotate(var(--gif-rotation, 0deg));
+    }
+}
+
+@keyframes gif-disappear {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(var(--gif-scale, 1)) rotate(var(--gif-rotation, 0deg));
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0) rotate(var(--gif-rotation, 0deg));
+    }
+}
+
+@keyframes gif-float {
+    0% {
+        transform: translate(-50%, -50%) scale(var(--gif-scale, 1)) rotate(var(--gif-rotation, 0deg)) translateY(-5px);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(var(--gif-scale, 1)) rotate(var(--gif-rotation, 0deg)) translateY(5px);
+    }
+}
+
+/* ============= CONFETTI STYLES ============= */
 
 /* Confetti container */
 .confetti-container {
@@ -95,32 +199,79 @@
     height: 100%;
     pointer-events: none;
     z-index: 9999;
+    overflow: hidden;
 }
 
 /* Individual confetti pieces */
 .confetti-piece {
     position: absolute;
-    width: var(--confetti-size, 10px);
-    height: var(--confetti-size, 10px);
     background-color: var(--confetti-color, #f00);
-    top: -10px;
+    top: var(--confetti-start, -10px);
     left: var(--confetti-left, 50%);
-    opacity: 0.7;
+    opacity: 0.9;
     transform: rotate(var(--confetti-rotation, 0deg));
     animation: confetti-fall var(--confetti-duration, 3s) linear forwards;
     animation-delay: var(--confetti-delay, 0s);
 }
 
+/* Confetti shapes */
+.confetti-circle {
+    width: var(--confetti-size, 10px);
+    height: var(--confetti-size, 10px);
+    border-radius: 50%;
+}
+
+.confetti-square {
+    width: var(--confetti-size, 10px);
+    height: var(--confetti-size, 10px);
+}
+
+.confetti-rectangle {
+    width: var(--confetti-size, 10px);
+    height: calc(var(--confetti-size, 10px) * 2);
+}
+
+.confetti-triangle {
+    width: 0;
+    height: 0;
+    border-left: calc(var(--confetti-size, 10px) * 0.5) solid transparent;
+    border-right: calc(var(--confetti-size, 10px) * 0.5) solid transparent;
+    border-bottom: var(--confetti-size, 10px) solid var(--confetti-color, #f00);
+    background-color: transparent !important;
+}
+
+/* Shiny confetti */
+.confetti-shine {
+    background-image: linear-gradient(135deg, 
+        rgba(255,255,255,0.4) 0%, 
+        rgba(255,255,255,0.1) 30%, 
+        rgba(255,255,255,0) 50%,
+        rgba(255,255,255,0.1) 70%,
+        rgba(255,255,255,0.4) 100%);
+    background-size: 200% 200%;
+    animation: confetti-fall var(--confetti-duration, 3s) linear forwards,
+               shine-effect 2s linear infinite;
+}
+
 /* Animations */
 @keyframes confetti-fall {
     0% {
-        transform: translateY(0) rotate(var(--confetti-rotation, 0deg));
-        opacity: 0.7;
+        transform: translateY(0) translateX(0) rotate(var(--confetti-rotation, 0deg));
+        opacity: 0.9;
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(50vh) translateX(calc(var(--confetti-left) * 0.1)) rotate(calc(var(--confetti-rotation, 0deg) + 180deg));
     }
     100% {
-        transform: translateY(100vh) rotate(calc(var(--confetti-rotation, 0deg) + 360deg));
+        transform: translateY(100vh) translateX(calc(var(--confetti-left) * 0.2)) rotate(calc(var(--confetti-rotation, 0deg) + 360deg));
         opacity: 0;
     }
+}
+
+@keyframes shine-effect {
+    0% { background-position: -100% -100%; }
+    100% { background-position: 100% 100%; }
 }
 
 @keyframes overlay-drift {

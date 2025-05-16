@@ -31,7 +31,9 @@
     },
     "web_accessible_resources": [
       {
-        "resources": ["celebrations/*"],
+        "resources": [
+          "celebrations/*"
+        ],
         "matches": ["*://app.asana.com/*"]
       }
     ]

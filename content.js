@@ -20,7 +20,7 @@ const CUSTOM_FIELD_LABEL_SELECTOR = '.LabeledRowStructure-left';
 const CUSTOM_FIELD_VALUE_SELECTOR = '.LabeledRowStructure-right';
 
 // Cooldown period to prevent double celebrations (in ms)
-const CELEBRATION_COOLDOWN = 4000;
+const CELEBRATION_COOLDOWN = 6000;
 
 // Define celebration options for different task sizes
 const CELEBRATIONS = {
@@ -28,31 +28,36 @@ const CELEBRATIONS = {
     text: 'Small Victory!',
     className: 'celebration-small',
     emoji: '🎉',
-    image: 'celebrations/small-celebration.webp'
+    gifCount: 2, // Number of GIFs to show for small tasks
+    gifFolder: 'celebrations'
   },
   medium: {
     text: 'Good Job!',
     className: 'celebration-medium',
     emoji: '🚀',
-    image: 'celebrations/medium-celebration.webp'
+    gifCount: 3, // Number of GIFs to show for medium tasks
+    gifFolder: 'celebrations'
   },
   large: {
     text: 'Impressive!',
     className: 'celebration-large',
     emoji: '🏆',
-    image: 'celebrations/large-celebration.webp'
+    gifCount: 4, // Number of GIFs to show for large tasks
+    gifFolder: 'celebrations'
   },
   xlarge: {
     text: 'EPIC ACHIEVEMENT!',
     className: 'celebration-xlarge',
     emoji: '🎇✨',
-    image: 'celebrations/xlarge-celebration.webp'
+    gifCount: 6, // Number of GIFs to show for XL tasks
+    gifFolder: 'celebrations'
   },
   default: {
     text: 'Task Completed!',
     className: 'celebration-default',
     emoji: '✅',
-    image: 'celebrations/default-celebration.webp'
+    gifCount: 1, // Number of GIFs to show for default tasks
+    gifFolder: 'celebrations'
   }
 };
 
@@ -61,9 +66,7 @@ const CELEBRATIONS = {
  * This uses multiple strategies to find the parent task.
  */
 function findParentTaskRow(element) {
-    if (!element) return null;
-    console.log('Looking for parent task row from:', element);
-    
+    if (!element) return null;    
     // Strategy 1: Direct parent lookup using selectors
     let taskRow = element.closest(TASK_ROW_SELECTOR);
     
@@ -75,9 +78,6 @@ function findParentTaskRow(element) {
         const taskName = findTaskNameFromElement(element);
         
         if (taskName) {
-            console.log('Found task name:', taskName);
-            // In some views, we might need to work with the task by name
-            // For now, we'll use the closest TabPanel or TaskDetails as our task container
             taskRow = element.closest('.TaskDetails, .TabPanel, .TaskPane');
             
             if (taskRow) {
@@ -93,7 +93,6 @@ function findParentTaskRow(element) {
             let parent = element.parentElement;
             for (let i = 0; i < 8 && parent; i++) {
                 if (parent.classList.length > 0 || parent.id) {
-                    console.log(`Level ${i} parent:`, parent);
                     // Look for common task-related container classes
                     if (parent.classList.contains('TaskCell') || 
                         parent.classList.contains('TaskRow') || 
@@ -109,7 +108,6 @@ function findParentTaskRow(element) {
         }
     }
     
-    console.log('Found task row:', taskRow);
     return taskRow;
 }
 
@@ -146,8 +144,6 @@ function getTaskDetails(taskRowElement) {
     let priority = null;
 
     if (!taskRowElement) return { taskSize, priority };
-
-    console.log('Getting task details from element:', taskRowElement);
     
     // Strategy 1: Look in the custom fields section
     const customFields = document.querySelectorAll(CUSTOM_FIELD_CONTAINER_SELECTOR);
@@ -169,25 +165,6 @@ function getTaskDetails(taskRowElement) {
             }
         }
     });
-
-    // Strategy 2: Try to find fields in the dialog or details view
-    // if (!taskSize || !priority) {
-    //     console.log('Trying to find fields in task dialog/details');
-        
-    //     // Find all .Pill elements which often contain field values
-    //     const pills = document.querySelectorAll('.Pill-label');
-    //     pills.forEach(pill => {
-    //         const text = pill.textContent.trim().toLowerCase();
-    //         console.log('Found pill:', text);
-            
-    //         // Check if this pill contains priority or size information
-    //         if (text.match(/^(low|medium|high|urgent)$/i)) {
-    //             priority = pill.textContent.trim();
-    //         } else if (text.match(/^(small|medium|large|x-?large)$/i)) {
-    //             taskSize = pill.textContent.trim();
-    //         }
-    //     });
-    // }
     
     // If still not found, default to creating a celebration anyway
     if (!taskSize) {
@@ -212,7 +189,6 @@ function processCompletedTask(taskElement) {
         return;
     }
     
-    console.log('Task completed detected:', taskElement);
     const { taskSize, priority } = getTaskDetails(taskElement);
     showCelebration(taskSize, priority);
     
@@ -257,24 +233,56 @@ function showCelebration(taskSize, priority) {
     // Apply the corresponding CSS class
     celebrationDiv.classList.add(celebrationConfig.className);
     
-    // Create the celebration content
+    // Create motivational messages based on task size
+    const motivationalMessages = {
+        small: [
+            "Every small win counts!",
+            "Progress is progress, no matter how small.",
+            "Small steps lead to big results!",
+            "One task closer to your goals!"
+        ],
+        medium: [
+            "You're on a roll today!",
+            "Making meaningful progress!",
+            "Keep up the great momentum!",
+            "You're crushing it!"
+        ],
+        large: [
+            "That was a big one - be proud!",
+            "Major achievement unlocked!",
+            "You've accomplished something significant!",
+            "You're unstoppable!"
+        ],
+        xlarge: [
+            "PHENOMENAL ACHIEVEMENT!",
+            "MONUMENTAL SUCCESS!",
+            "YOU'RE ABSOLUTELY INCREDIBLE!",
+            "LEGENDARY PERFORMANCE!"
+        ],
+        default: [
+            "Well done!",
+            "Great work!",
+            "Task mastered!",
+            "Keep it up!"
+        ]
+    };
+    
+    // Get random motivational message for the current task size
+    const messages = motivationalMessages[size] || motivationalMessages.default;
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+    
+    // Create the celebration content with enhanced structure
     const contentDiv = document.createElement('div');
     contentDiv.className = 'celebration-content';
     contentDiv.innerHTML = `
-        ${celebrationConfig.emoji} ${celebrationConfig.text} ${celebrationConfig.emoji}
-        <br><small>Priority: ${priority || 'N/A'}</small>
+        <div class="celebration-title">
+            <span class="celebration-emoji">${celebrationConfig.emoji}</span>
+            ${celebrationConfig.text}
+            <span class="celebration-emoji">${celebrationConfig.emoji}</span>
+        </div>
+        <div class="celebration-message">"${randomMessage}"</div>
+        <div class="celebration-details">Priority: ${priority || 'N/A'}</div>
     `;
-    
-    // Add background image if available
-    if (celebrationConfig.image) {
-        try {
-            const imageUrl = chrome.runtime.getURL(celebrationConfig.image);
-            celebrationDiv.classList.add('celebration-with-image');
-            celebrationDiv.style.setProperty('--celebration-image', `url(${imageUrl})`);
-        } catch (e) {
-            console.log('Could not load celebration image', e);
-        }
-    }
     
     // Add dark overlay and content
     const overlayDiv = document.createElement('div');
@@ -286,6 +294,9 @@ function showCelebration(taskSize, priority) {
 
     // Add confetti effect
     showConfetti();
+    
+    // Add GIF celebrations based on task size
+    showGifCelebrations(celebrationConfig.gifCount, celebrationConfig.gifFolder);
 
     // Entry animation - using CSS animations
     celebrationDiv.classList.add('celebration-visible');
@@ -295,36 +306,73 @@ function showCelebration(taskSize, priority) {
         celebrationDiv.classList.remove('celebration-visible');
         celebrationDiv.classList.add('celebration-hiding');
         
+        // Also remove any floating GIFs
+        removeAllGifCelebrations();
+        
         setTimeout(() => {
             if (celebrationDiv.parentNode) {
                 celebrationDiv.remove();
             }
         }, 500); // Time for exit animation
-    }, 3500); // Duration of celebration
+    }, 5000); // Duration of celebration
 }
 
 /**
- * Creates a simple confetti effect using DOM elements
+ * Creates an enhanced confetti effect using DOM elements
  */
 function showConfetti() {
     const confettiContainer = document.createElement('div');
     confettiContainer.className = 'confetti-container';
     document.body.appendChild(confettiContainer);
     
-    // Create 50 confetti pieces
-    const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+    // Create 250 confetti pieces with better color variety and shapes
+    const colors = [
+        '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', 
+        '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', 
+        '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', 
+        '#FF5722', '#D500F9', '#FFD600', '#64FFDA', '#69F0AE'
+    ];
     
-    for (let i = 0; i < 50; i++) {
+    // Create different shapes of confetti
+    const shapes = ['circle', 'square', 'rectangle', 'triangle'];
+    
+    for (let i = 0; i < 250; i++) {
         const confetti = document.createElement('div');
         confetti.className = 'confetti-piece';
         
+        // Randomly choose a shape
+        const shape = shapes[Math.floor(Math.random() * shapes.length)];
+        confetti.classList.add(`confetti-${shape}`);
+        
         // Set random properties through CSS variables
         confetti.style.setProperty('--confetti-color', colors[Math.floor(Math.random() * colors.length)]);
-        confetti.style.setProperty('--confetti-left', `${Math.random() * 100}vw`);
-        confetti.style.setProperty('--confetti-size', `${Math.random() * 10 + 5}px`);
+        
+        // Set different sizes based on the shape
+        let size = Math.random() * 10 + 6; // 6px to 16px
+        confetti.style.setProperty('--confetti-size', `${size}px`);
+        
+        // Distribute evenly across the screen with slight variance
+        const horizontalPosition = (i % 25) * 4 + Math.random() * 2;
+        confetti.style.setProperty('--confetti-left', `${horizontalPosition}%`);
+        
+        // Vary the starting positions vertically as well
+        const verticalVariation = Math.random() * 30 - 15; // -15px to +15px
+        confetti.style.setProperty('--confetti-start', `${verticalVariation}px`);
+        
+        // Random rotation
         confetti.style.setProperty('--confetti-rotation', `${Math.random() * 360}deg`);
-        confetti.style.setProperty('--confetti-duration', `${Math.random() * 3 + 2}s`);
-        confetti.style.setProperty('--confetti-delay', `${Math.random() * 1.5}s`);
+        
+        // Vary the animation duration and delay
+        const duration = Math.random() * 3 + 2.5; // 2.5s to 5.5s
+        confetti.style.setProperty('--confetti-duration', `${duration}s`);
+        
+        const delay = Math.random() * 2; // 0s to 2s delay
+        confetti.style.setProperty('--confetti-delay', `${delay}s`);
+        
+        // Add some shine effect to some pieces
+        if (Math.random() > 0.8) {
+            confetti.classList.add('confetti-shine');
+        }
         
         confettiContainer.appendChild(confetti);
     }
@@ -334,42 +382,186 @@ function showConfetti() {
         if (confettiContainer.parentNode) {
             confettiContainer.remove();
         }
-    }, 5000);
+    }, 7000); // Increased to last longer than the celebration
+}
+
+/**
+ * Loads all GIFs from a specific folder
+ * @param {string} folderPath - Path to the folder
+ * @param {Function} callback - Callback with array of URLs
+ */
+function loadGifsFromFolder(folderPath, callback) {
+    const maxGifsToCheck = 21; // Look for up to 21 GIFs
+    const gifUrls = [];
+    let checkedCount = 0;
+    
+    // For Chrome extensions, we need to use chrome.runtime.getURL
+    try {
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+            // First collect all possible GIF URLs without checking if they exist
+            const possibleUrls = [];
+            for (let i = 1; i <= maxGifsToCheck; i++) {
+                try {
+                    const path = `${folderPath}/${i}.gif`;
+                    const url = chrome.runtime.getURL(path);
+                    possibleUrls.push(url);
+                } catch (e) {
+                    // Skip if URL can't be generated
+                }
+            }
+            
+            // Function to check if we're done loading
+            const checkIfDone = () => {
+                checkedCount++;
+                if (checkedCount >= maxGifsToCheck) {
+                    // We've checked all possible GIFs, return whatever we've found
+                    callback(gifUrls);
+                }
+            };
+            
+            // Validate each URL and add the valid ones to gifUrls
+            possibleUrls.forEach(url => {
+                const img = new Image();
+                img.onload = function() {
+                    gifUrls.push(url);
+                    checkIfDone();
+                };
+                img.onerror = function() {
+                    checkIfDone();
+                };
+                img.src = url;
+            });
+        } else {
+            // Fallback for non-Chrome environments
+            for (let i = 1; i <= maxGifsToCheck; i++) {
+                const path = `${folderPath}/${i}.gif`;
+                gifUrls.push(path);
+            }
+            callback(gifUrls);
+        }
+    } catch (e) {
+        console.error('Error loading GIFs:', e);
+        callback([]);
+    }
+}
+
+/**
+ * Displays random floating GIFs on the screen
+ * @param {number} count - Number of GIFs to display
+ * @param {string} folderPath - Path to the folder containing GIFs
+ */
+function showGifCelebrations(count, folderPath) {
+    // Try to load the GIFs from the folder
+    loadGifsFromFolder(folderPath, (gifUrls) => {
+        if (!gifUrls || gifUrls.length === 0) {
+            return;
+        }
+        
+        // Create the specified number of GIF elements (or as many as we have)
+        const actualCount = Math.min(count, gifUrls.length);
+        console.log(`Showing ${actualCount} GIFs from ${gifUrls.length} available`);
+        
+        // Set up a grid distribution to better spread GIFs across the screen
+        const positions = [];
+        
+        // Divide the screen into sections to place GIFs
+        const columns = Math.ceil(Math.sqrt(actualCount));
+        const rows = Math.ceil(actualCount / columns);
+        
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < columns; col++) {
+                if (positions.length < actualCount) {
+                    // Add some randomness to grid positions
+                    positions.push({
+                        left: ((100 / columns) * col) + (Math.random() * 20 - 10) + (100 / columns / 2) + '%',
+                        top: ((100 / rows) * row) + (Math.random() * 20 - 10) + (100 / rows / 2) + '%',
+                    });
+                }
+            }
+        }
+        
+        // Shuffle the positions array for more randomness
+        for (let i = positions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [positions[i], positions[j]] = [positions[j], positions[i]];
+        }
+        
+        // Shuffle the gifUrls to get random ones each time
+        const shuffledGifs = [...gifUrls];
+        for (let i = shuffledGifs.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledGifs[i], shuffledGifs[j]] = [shuffledGifs[j], shuffledGifs[i]];
+        }
+        
+        for (let i = 0; i < actualCount; i++) {
+            // Get a GIF from the shuffled array, using modulo to handle if we have fewer GIFs than count
+            const gifUrl = shuffledGifs[i % shuffledGifs.length];
+            
+            // Create GIF element with preload
+            const gifElement = new Image();
+            gifElement.className = 'floating-celebration-gif';
+            gifElement.onload = function() {
+                // Only add it to the DOM after it's loaded
+                document.body.appendChild(gifElement);
+                
+                // Add class for entrance animation after a short delay
+                setTimeout(() => {
+                    gifElement.classList.add('gif-visible');
+                }, 10 + (i * 100)); // Stagger the animations
+            };
+            gifElement.src = gifUrl;
+            
+            // Use the pre-calculated positions instead of completely random ones
+            const position = positions[i];
+            const randomPosition = {
+                left: position.left,
+                top: position.top,
+                scale: 0.7 + Math.random() * 0.6, // 0.7 to 1.3 scale
+                rotation: (Math.random() * 20 - 10) + 'deg', // -10 to +10 degrees
+                delay: i * 0.1 // Staggered delay
+            };
+            
+            gifElement.style.setProperty('--gif-left', randomPosition.left);
+            gifElement.style.setProperty('--gif-top', randomPosition.top);
+            gifElement.style.setProperty('--gif-scale', randomPosition.scale);
+            gifElement.style.setProperty('--gif-rotation', randomPosition.rotation);
+            gifElement.style.setProperty('--gif-delay', randomPosition.delay + 's');
+        }
+    });
+}
+
+/**
+ * Removes all floating GIFs from the page
+ */
+function removeAllGifCelebrations() {
+    const gifs = document.querySelectorAll('.floating-celebration-gif');
+    gifs.forEach(gif => {
+        gif.classList.remove('gif-visible');
+        gif.classList.add('gif-hiding');
+        setTimeout(() => {
+            if (gif.parentNode) {
+                gif.remove();
+            }
+        }, 500);
+    });
 }
 
 // Main detection mechanism using MutationObserver
-// const observer = new MutationObserver((mutationsList) => {
-//     for (const mutation of mutationsList) {
-//         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-//             const targetElement = mutation.target;
-//             console.log('Class change detected on:', targetElement);
+const observer = new MutationObserver((mutationsList) => {
+    for (const mutation of mutationsList) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            const targetElement = mutation.target;
             
-//             if (targetElement.matches && 
-//                 targetElement.matches(TASK_ROW_SELECTOR) && 
-//                 targetElement.classList.contains(TASK_COMPLETED_CLASS)) {
-//                 console.log('Task completed detected:', targetElement);
-                
-//                 // Only celebrate if this is a new completion (not previously completed)
-//                 const wasAlreadyCompleted = mutation.oldValue && mutation.oldValue.includes(TASK_COMPLETED_CLASS);
-//                 if (!wasAlreadyCompleted) {
-//                     console.log('New task completion detected!');
-//                     processCompletedTask(targetElement);
-//                 }
-//             }
-//         }
-//     }
-// });
+        }
+    }
+});
 
 // Backup method using click detection - Enhanced to better detect Asana's completion pattern
-document.addEventListener('click', function(event) {
-    console.log('Click detected:', event.target);
-    
+document.addEventListener('click', function(event) {    
     // Try various methods to find the completion button
     const clickedCompleteButton = event.target.closest(TASK_COMPLETED_CHECKBOX_SELECTOR);
     
-    if (clickedCompleteButton) {
-        console.log('Clicked on what appears to be a completion button:', clickedCompleteButton);
-        
+    if (clickedCompleteButton) {        
         // Find the associated task row
         const taskRow = findParentTaskRow(clickedCompleteButton);
         
@@ -380,20 +572,15 @@ document.addEventListener('click', function(event) {
             buttonText.includes('marcar como') ||
             clickedCompleteButton.classList.contains('TaskCompletionToggleButton--isNotPressed');
         
-        console.log('Button text:', buttonText, 'Is mark complete button:', isMarkCompleteButton);
         
-        if (taskRow) {
-            console.log('Associated task row found:', taskRow);
-            
+        if (taskRow) {            
             // Short delay to allow Asana to update task status
             setTimeout(() => {
-                console.log('Checking if task is now completed...');
                 const isCompleted = 
                     taskRow.classList.contains('TaskRow--isCompleted') || 
                     taskRow.classList.contains('SpreadsheetTaskCompletionStatus--completed') ||
                     taskRow.querySelector('.TaskCompletionStatusIndicator--isComplete') !== null;
                 
-                console.log('Task completion state:', isCompleted);
                 
                 if (isCompleted) {
                     processCompletedTask(taskRow);
@@ -439,7 +626,6 @@ const initialLoadInterval = setInterval(() => {
         (asanaMainContainer !== document.body || attempts > 5)) {
         
         clearInterval(initialLoadInterval);
-        console.log('DOM observer started on:', asanaMainContainer);
         
         observer.observe(asanaMainContainer, {
             childList: true,   // Watch for added/removed nodes
@@ -451,7 +637,6 @@ const initialLoadInterval = setInterval(() => {
         
         // Also add specific observers for task completion cells which might not change class
         const taskCompletionCells = document.querySelectorAll('.TaskCompletionToggleButton, .SpreadsheetTaskCompletionCell');
-        console.log(`Found ${taskCompletionCells.length} task completion cells to observe`);
         
         taskCompletionCells.forEach(cell => {
             observer.observe(cell, {
