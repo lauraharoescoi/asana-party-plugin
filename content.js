@@ -16,8 +16,8 @@ const TASK_COMPLETED_CLASS = 'TaskRow--isCompleted, .SpreadsheetTaskCompletionSt
 const TASK_COMPLETED_CHECKBOX_SELECTOR = 'div[role="button"].TaskCompletionToggleButton, div[role="button"].SpreadsheetTaskCompletionCell, div[aria-label*="Mark complete"], div[aria-label*="Marcar como"], .CheckboxButton, .TaskCompletionButton'; 
 
 const CUSTOM_FIELD_CONTAINER_SELECTOR = '.TableRow';
-const CUSTOM_FIELD_LABEL_SELECTOR = '.LabeledRowStructure-left span';
-const CUSTOM_FIELD_VALUE_SELECTOR = '.LabeledRowStructure-right span';
+const CUSTOM_FIELD_LABEL_SELECTOR = '.LabeledRowStructure-left';
+const CUSTOM_FIELD_VALUE_SELECTOR = '.LabeledRowStructure-right';
 
 // Cooldown period to prevent double celebrations (in ms)
 const CELEBRATION_COOLDOWN = 4000;
@@ -59,7 +59,7 @@ function findParentTaskRow(element) {
             let parent = element.parentElement;
             for (let i = 0; i < 8 && parent; i++) {
                 if (parent.classList.length > 0 || parent.id) {
-                    console.log(`Level ${i} parent:`, parent);
+                    // console.log(`Level ${i} parent:`, parent);
                     // Look for common task-related container classes
                     if (parent.classList.contains('TaskCell') || 
                         parent.classList.contains('TaskRow') || 
@@ -126,35 +126,34 @@ function getTaskDetails(taskRowElement) {
         if (labelElement && valueElement) {
             const label = labelElement.textContent.trim();
             const value = valueElement.textContent.trim();
-            console.log('Found field:', label, '=', value);
 
             // Case insensitive matching for different language settings
-            if (label.toLowerCase().includes('task size') || label.toLowerCase().includes('size') || label.toLowerCase().includes('tamaño')) {
+            if (label === 'Task Size') {
                 taskSize = value;
-            } else if (label.toLowerCase().includes('priority') || label.toLowerCase().includes('prioridad')) {
+            } else if (label === 'Priority') {
                 priority = value;
             }
         }
     });
 
     // Strategy 2: Try to find fields in the dialog or details view
-    if (!taskSize || !priority) {
-        console.log('Trying to find fields in task dialog/details');
+    // if (!taskSize || !priority) {
+    //     console.log('Trying to find fields in task dialog/details');
         
-        // Find all .Pill elements which often contain field values
-        const pills = document.querySelectorAll('.Pill-label');
-        pills.forEach(pill => {
-            const text = pill.textContent.trim().toLowerCase();
-            console.log('Found pill:', text);
+    //     // Find all .Pill elements which often contain field values
+    //     const pills = document.querySelectorAll('.Pill-label');
+    //     pills.forEach(pill => {
+    //         const text = pill.textContent.trim().toLowerCase();
+    //         console.log('Found pill:', text);
             
-            // Check if this pill contains priority or size information
-            if (text.match(/^(low|medium|high|urgent)$/i)) {
-                priority = pill.textContent.trim();
-            } else if (text.match(/^(small|medium|large|x-?large)$/i)) {
-                taskSize = pill.textContent.trim();
-            }
-        });
-    }
+    //         // Check if this pill contains priority or size information
+    //         if (text.match(/^(low|medium|high|urgent)$/i)) {
+    //             priority = pill.textContent.trim();
+    //         } else if (text.match(/^(small|medium|large|x-?large)$/i)) {
+    //             taskSize = pill.textContent.trim();
+    //         }
+    //     });
+    // }
     
     // If still not found, default to creating a celebration anyway
     if (!taskSize) {
@@ -162,7 +161,7 @@ function getTaskDetails(taskRowElement) {
     }
     
     if (!priority) {
-        priority = "medium";
+        priority = "P1 - Urgent";
     }
 
     console.log(`Details extracted - Size: ${taskSize}, Priority: ${priority}`);
@@ -227,7 +226,6 @@ function showCelebration(taskSize, priority) {
             emoji = '🏆';
             break;
         case 'xlarge':
-        case 'x-large':
             celebrationText = 'EPIC ACHIEVEMENT!';
             backgroundColor = '#9b59b6'; // Purple
             emoji = '🎇✨';
