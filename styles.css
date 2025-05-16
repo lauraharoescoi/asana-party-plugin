@@ -1,7 +1,7 @@
 /* styles.css */
 /* You can define more complex CSS animations here if desired */
 
-/* Main celebration overlay styles */
+/* Main celebration overlay */
 #asana-celebration-overlay {
     position: fixed;
     top: 50%;
@@ -15,26 +15,120 @@
     text-align: center;
     box-shadow: 0 15px 40px rgba(0,0,0,0.3);
     opacity: 0;
-    transition: opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
     font-family: Arial, Helvetica, sans-serif;
     font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    overflow: hidden;
+    min-width: 300px;
+    transition: opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 
-/* Example of a basic "confetti" animation (would require more JS to create elements) */
+/* Show/hide animations */
+.celebration-visible {
+    opacity: 1 !important;
+    transform: translate(-50%, -50%) scale(1) !important;
+    animation: overlay-drift 3s ease-in-out infinite alternate;
+}
+
+.celebration-hiding {
+    opacity: 0 !important;
+    transform: translate(-50%, -50%) scale(0.8) !important;
+}
+
+/* Style variations by task size */
+.celebration-small {
+    background-color: #3498db;
+}
+
+.celebration-medium {
+    background-color: #f1c40f;
+}
+
+.celebration-large {
+    background-color: #e74c3c;
+}
+
+.celebration-xlarge {
+    background-color: #9b59b6;
+    font-size: 36px;
+}
+
+.celebration-default {
+    background-color: #4CAF50;
+}
+
+/* Background image support */
+.celebration-with-image {
+    background-image: var(--celebration-image);
+    background-size: cover;
+    background-position: center;
+}
+
+/* Overlay for text readability on images */
+.celebration-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.4);
+    border-radius: 20px;
+}
+
+/* Content positioning */
+.celebration-content {
+    position: relative;
+    z-index: 2;
+}
+
+.celebration-content small {
+    font-size: 0.6em;
+    opacity: 0.8;
+}
+
+/* Confetti container */
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/* Individual confetti pieces */
 .confetti-piece {
     position: absolute;
-    width: 8px;
-    height: 16px;
-    background: #f00; /* Change colors dynamically */
-    top: 0;
-    opacity: 0;
-    animation: fall 3s linear infinite;
+    width: var(--confetti-size, 10px);
+    height: var(--confetti-size, 10px);
+    background-color: var(--confetti-color, #f00);
+    top: -10px;
+    left: var(--confetti-left, 50%);
+    opacity: 0.7;
+    transform: rotate(var(--confetti-rotation, 0deg));
+    animation: confetti-fall var(--confetti-duration, 3s) linear forwards;
+    animation-delay: var(--confetti-delay, 0s);
 }
 
-@keyframes fall {
-    to {
-        transform: translateY(100vh) rotate(360deg);
-        opacity: 1;
+/* Animations */
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(0) rotate(var(--confetti-rotation, 0deg));
+        opacity: 0.7;
+    }
+    100% {
+        transform: translateY(100vh) rotate(calc(var(--confetti-rotation, 0deg) + 360deg));
+        opacity: 0;
+    }
+}
+
+@keyframes overlay-drift {
+    0% {
+        transform: translate(-50%, -50%) scale(1) rotate(-1deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1) rotate(1deg);
     }
 }
 

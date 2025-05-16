@@ -22,6 +22,40 @@ const CUSTOM_FIELD_VALUE_SELECTOR = '.LabeledRowStructure-right';
 // Cooldown period to prevent double celebrations (in ms)
 const CELEBRATION_COOLDOWN = 4000;
 
+// Define celebration options for different task sizes
+const CELEBRATIONS = {
+  small: {
+    text: 'Small Victory!',
+    className: 'celebration-small',
+    emoji: '🎉',
+    image: 'celebrations/small-celebration.webp'
+  },
+  medium: {
+    text: 'Good Job!',
+    className: 'celebration-medium',
+    emoji: '🚀',
+    image: 'celebrations/medium-celebration.webp'
+  },
+  large: {
+    text: 'Impressive!',
+    className: 'celebration-large',
+    emoji: '🏆',
+    image: 'celebrations/large-celebration.webp'
+  },
+  xlarge: {
+    text: 'EPIC ACHIEVEMENT!',
+    className: 'celebration-xlarge',
+    emoji: '🎇✨',
+    image: 'celebrations/xlarge-celebration.webp'
+  },
+  default: {
+    text: 'Task Completed!',
+    className: 'celebration-default',
+    emoji: '✅',
+    image: 'celebrations/default-celebration.webp'
+  }
+};
+
 /**
  * Finds the parent task row element from an internal element.
  * This uses multiple strategies to find the parent task.
@@ -203,64 +237,104 @@ function showCelebration(taskSize, priority) {
     const celebrationDiv = document.createElement('div');
     celebrationDiv.id = 'asana-celebration-overlay';
     
-    // Set background color based on task size
-    let celebrationText = '';
-    let backgroundColor = '#4CAF50'; // Default green
-    let emoji = '✅';
-    let fontSize = null;
-
-    switch (taskSize ? taskSize.toLowerCase() : 'unknown') {
-        case 'small':
-            celebrationText = 'Small Victory!';
-            backgroundColor = '#3498db'; // Blue
-            emoji = '🎉';
-            break;
-        case 'medium':
-            celebrationText = 'Good Job!';
-            backgroundColor = '#f1c40f'; // Yellow
-            emoji = '🚀';
-            break;
-        case 'large':
-            celebrationText = 'Impressive!';
-            backgroundColor = '#e74c3c'; // Red
-            emoji = '🏆';
-            break;
-        case 'xlarge':
-            celebrationText = 'EPIC ACHIEVEMENT!';
-            backgroundColor = '#9b59b6'; // Purple
-            emoji = '🎇✨';
-            fontSize = '36px';
-            break;
-        default:
-            celebrationText = 'Task Completed!';
-            if (taskSize) celebrationText += ` (Size: ${taskSize})`;
-            break;
+    // Get the appropriate celebration based on task size
+    let celebrationConfig = CELEBRATIONS.default;
+    const size = taskSize ? taskSize.toLowerCase() : 'unknown';
+    
+    if (size === 'small') {
+        celebrationConfig = CELEBRATIONS.small;
+    } else if (size === 'medium') {
+        celebrationConfig = CELEBRATIONS.medium;
+    } else if (size === 'large') {
+        celebrationConfig = CELEBRATIONS.large;
+    } else if (size === 'xlarge' || size === 'x-large') {
+        celebrationConfig = CELEBRATIONS.xlarge;
+    } else if (taskSize) {
+        celebrationConfig = CELEBRATIONS.default;
+        celebrationConfig.text = `Task Completed! (Size: ${taskSize})`;
     }
 
-    celebrationDiv.style.backgroundColor = backgroundColor;
-    if (fontSize) {
-        celebrationDiv.style.fontSize = fontSize;
+    // Apply the corresponding CSS class
+    celebrationDiv.classList.add(celebrationConfig.className);
+    
+    // Create the celebration content
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'celebration-content';
+    contentDiv.innerHTML = `
+        ${celebrationConfig.emoji} ${celebrationConfig.text} ${celebrationConfig.emoji}
+        <br><small>Priority: ${priority || 'N/A'}</small>
+    `;
+    
+    // Add background image if available
+    if (celebrationConfig.image) {
+        try {
+            const imageUrl = chrome.runtime.getURL(celebrationConfig.image);
+            celebrationDiv.classList.add('celebration-with-image');
+            celebrationDiv.style.setProperty('--celebration-image', `url(${imageUrl})`);
+        } catch (e) {
+            console.log('Could not load celebration image', e);
+        }
     }
     
-    celebrationDiv.innerHTML = `${emoji} ${celebrationText} ${emoji}<br><small style="font-size: 0.6em; opacity: 0.8;">Priority: ${priority || 'N/A'}</small>`;
+    // Add dark overlay and content
+    const overlayDiv = document.createElement('div');
+    overlayDiv.className = 'celebration-overlay';
+    
+    celebrationDiv.appendChild(overlayDiv);
+    celebrationDiv.appendChild(contentDiv);
     document.body.appendChild(celebrationDiv);
 
-    // Entry animation
-    setTimeout(() => {
-        celebrationDiv.style.opacity = '1';
-        celebrationDiv.style.transform = 'translate(-50%, -50%) scale(1)';
-    }, 50);
+    // Add confetti effect
+    showConfetti();
+
+    // Entry animation - using CSS animations
+    celebrationDiv.classList.add('celebration-visible');
 
     // Hide after a few seconds
     setTimeout(() => {
-        celebrationDiv.style.opacity = '0';
-        celebrationDiv.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        celebrationDiv.classList.remove('celebration-visible');
+        celebrationDiv.classList.add('celebration-hiding');
+        
         setTimeout(() => {
             if (celebrationDiv.parentNode) {
                 celebrationDiv.remove();
             }
-        }, 400); // Time for exit animation
+        }, 500); // Time for exit animation
     }, 3500); // Duration of celebration
+}
+
+/**
+ * Creates a simple confetti effect using DOM elements
+ */
+function showConfetti() {
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    // Create 50 confetti pieces
+    const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+    
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti-piece';
+        
+        // Set random properties through CSS variables
+        confetti.style.setProperty('--confetti-color', colors[Math.floor(Math.random() * colors.length)]);
+        confetti.style.setProperty('--confetti-left', `${Math.random() * 100}vw`);
+        confetti.style.setProperty('--confetti-size', `${Math.random() * 10 + 5}px`);
+        confetti.style.setProperty('--confetti-rotation', `${Math.random() * 360}deg`);
+        confetti.style.setProperty('--confetti-duration', `${Math.random() * 3 + 2}s`);
+        confetti.style.setProperty('--confetti-delay', `${Math.random() * 1.5}s`);
+        
+        confettiContainer.appendChild(confetti);
+    }
+    
+    // Remove the confetti container after animations are done
+    setTimeout(() => {
+        if (confettiContainer.parentNode) {
+            confettiContainer.remove();
+        }
+    }, 5000);
 }
 
 // Main detection mechanism using MutationObserver
