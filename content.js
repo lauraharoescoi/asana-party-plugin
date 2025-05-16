@@ -111,35 +111,6 @@ function startPartyMode() {
   // Start floating emojis
   createFloatingEmojis(partyContainer);
   
-  // Create background music (if allowed by browser)
-  try {
-    musicElement = document.createElement('audio');
-    musicElement.src = chrome.runtime.getURL('celebrations/party-music.mp3');
-    musicElement.volume = 0.5;
-    musicElement.loop = true;
-    document.body.appendChild(musicElement);
-    
-    // Need user interaction to play audio in most browsers
-    const playMusicButton = document.createElement('button');
-    playMusicButton.textContent = '🔊 PLAY MUSIC';
-    playMusicButton.style.cssText = 'position: fixed; bottom: 20px; left: 20px; padding: 10px 15px; background: #3366ff; color: white; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 999999; pointer-events: auto;';
-    partyContainer.appendChild(playMusicButton);
-    
-    playMusicButton.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent the event from reaching the click layer
-      musicElement.play()
-        .then(() => {
-          playMusicButton.style.display = 'none';
-        })
-        .catch(err => {
-          console.error('Could not play music:', err);
-          playMusicButton.textContent = '❌ MUSIC BLOCKED';
-        });
-    });
-  } catch (e) {
-    console.error('Could not create audio element:', e);
-  }
-  
   // Apply party effects to Asana UI
   partyModeInterval = setInterval(pulseAsanaElements, 1000);
   
