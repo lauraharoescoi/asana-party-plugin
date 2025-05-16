@@ -32,7 +32,8 @@
     "web_accessible_resources": [
       {
         "resources": [
-          "celebrations/*"
+            "celebrations/*",
+            "house_sigils/*"
         ],
         "matches": ["*://app.asana.com/*"]
       }

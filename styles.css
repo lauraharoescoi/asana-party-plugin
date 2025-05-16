@@ -423,3 +423,31 @@
     0% { text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6); }
     100% { text-shadow: 0 2px 12px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 255, 255, 0.3); }
 }
+
+/* House Sigil Styling */
+.house-sigil {
+    height: 40px;
+    width: 40px;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 12px;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+}
+
+.left-sigil {
+    animation: sigil-rotate-left 3s ease-in-out infinite alternate;
+}
+
+.right-sigil {
+    animation: sigil-rotate-right 3s ease-in-out infinite alternate;
+}
+
+@keyframes sigil-rotate-left {
+    0% { transform: rotate(-5deg) scale(1); }
+    100% { transform: rotate(5deg) scale(1.1); }
+}
+
+@keyframes sigil-rotate-right {
+    0% { transform: rotate(5deg) scale(1); }
+    100% { transform: rotate(-5deg) scale(1.1); }
+}

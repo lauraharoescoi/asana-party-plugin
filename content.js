@@ -238,55 +238,55 @@ function showCelebration(taskSize, priority, team) {
     // Game of Thrones house-themed content
     const houseThemes = {
         'Targaryen': {
-            emoji: '🐲',
+            sigilImg: 'house_sigils/targaryen.webp',
             quote: "Fire and Blood",
             message: "A Targaryen victory! The dragon has conquered another task!",
             className: "house-targaryen"
         },
         'Hightower': {
-            emoji: '🏰',
+            sigilImg: 'house_sigils/hightower.png',
             quote: "We Light the Way",
             message: "Tower of knowledge and wisdom! Another task illuminated!",
             className: "house-hightower"
         },
         'Tyrell': {
-            emoji: '🌹',
+            sigilImg: 'house_sigils/tyrell.png',
             quote: "Growing Strong",
             message: "The rose blooms with another completed task!",
             className: "house-tyrell"
         },
         'Greyjoy': {
-            emoji: '🦑',
+            sigilImg: 'house_sigils/greyjoy.webp',
             quote: "We Do Not Sow",
             message: "What is dead may never die! Conquered like the Iron Islands!",
             className: "house-greyjoy"
         },
         'Lannister': {
-            emoji: '🦁',
+            sigilImg: 'house_sigils/lannister.webp',
             quote: "Hear Me Roar",
             message: "A Lannister always completes their tasks!",
             className: "house-lannister"
         },
         'Martell': {
-            emoji: '☀️',
+            sigilImg: 'house_sigils/martell.png',
             quote: "Unbowed, Unbent, Unbroken",
             message: "The sun of Dorne shines on your completed task!",
             className: "house-martell"
         },
         'Mormont': {
-            emoji: '🐻',
+            sigilImg: 'house_sigils/mormont.webp',
             quote: "Here We Stand",
             message: "With the strength of Bear Island, another task falls!",
             className: "house-mormont"
         },
         'Wildings': {
-            emoji: '❄️',
+            sigilImg: 'house_sigils/wildlings.webp',
             quote: "Free Folk",
             message: "Beyond the Wall, your tasks are conquered with wild freedom!",
             className: "house-wildlings"
         },
         'Tech': {
-            emoji: '💻',
+            sigilImg: 'house_sigils/tech.png',
             quote: "Innovation is Coming",
             message: "The maesters of technology have solved another problem!",
             className: "house-tech"
@@ -374,11 +374,22 @@ function showCelebration(taskSize, priority, team) {
         // Create the celebration content with house theme
         const contentDiv = document.createElement('div');
         contentDiv.className = 'celebration-content';
+        
+        // Get correct image URL using chrome.runtime.getURL if available
+        let leftSigilUrl = houseTheme.sigilImg;
+        let rightSigilUrl = houseTheme.sigilImg;
+        
+        // In Chrome extension context, convert relative paths to absolute URLs
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+            leftSigilUrl = chrome.runtime.getURL(houseTheme.sigilImg);
+            rightSigilUrl = chrome.runtime.getURL(houseTheme.sigilImg);
+        }
+        
         contentDiv.innerHTML = `
             <div class="celebration-title">
-                <span class="celebration-emoji">${houseTheme.emoji}</span>
+                <img src="${leftSigilUrl}" alt="${team}" class="house-sigil left-sigil">
                 ${celebrationConfig.text}
-                <span class="celebration-emoji">${houseTheme.emoji}</span>
+                <img src="${rightSigilUrl}" alt="${team}" class="house-sigil right-sigil">
             </div>
             <div class="celebration-house-motto">"${houseTheme.quote}"</div>
             <div class="celebration-message">${houseTheme.message}</div>
