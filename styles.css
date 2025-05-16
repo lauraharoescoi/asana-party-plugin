@@ -22,13 +22,20 @@
     font-weight: 800;
     text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     overflow: hidden;
-    min-width: 450px;
-    max-width: 80%;
+    min-width: 500px;
+    width: 50vw;
+    max-width: 800px;
+    min-height: 300px;
+    max-height: 80vh;
     transition: opacity 0.5s ease-out, transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
     background-size: 300% 300%;
     animation: gradient-shift 5s ease infinite;
     border: 2px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Show/hide animations */
@@ -95,11 +102,14 @@
     z-index: 2;
     line-height: 1.4;
     text-align: center;
-    padding: 10px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .celebration-emoji {
@@ -119,6 +129,18 @@
         0 2px 5px rgba(0, 0, 0, 0.5),
         0 5px 15px rgba(0, 0, 0, 0.3);
     width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.celebration-title-text {
+    display: inline-block;
+    width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0 10px;
 }
 
 .celebration-message {
@@ -138,6 +160,9 @@
     width: 100%;
     max-width: 90%;
     box-sizing: border-box;
+    min-height: 60px;
+    max-height: 120px;
+    overflow-y: auto;
 }
 
 .celebration-message::before,
@@ -190,7 +215,7 @@
     position: fixed;
     z-index: 9990;
     pointer-events: none;
-    width: 250px;
+    width: 280px;
     height: auto;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -235,12 +260,13 @@
     }
 }
 
+/* Modify the GIF float animation to be gentler */
 @keyframes gif-float {
     0% {
-        transform: translate(-50%, -50%) scale(var(--gif-scale, 1)) rotate(var(--gif-rotation, 0deg)) translateY(-5px);
+        transform: translate(-50%, -50%) scale(var(--gif-scale, 1)) rotate(var(--gif-rotation, 0deg)) translateY(-8px) translateX(-5px);
     }
     100% {
-        transform: translate(-50%, -50%) scale(var(--gif-scale, 1)) rotate(var(--gif-rotation, 0deg)) translateY(5px);
+        transform: translate(-50%, -50%) scale(var(--gif-scale, 1)) rotate(var(--gif-rotation, 0deg)) translateY(8px) translateX(5px);
     }
 }
 
@@ -254,7 +280,7 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 9999;
+    z-index: 9980;
     overflow: hidden;
 }
 
@@ -268,6 +294,8 @@
     transform: rotate(var(--confetti-rotation, 0deg));
     animation: confetti-fall var(--confetti-duration, 3s) linear forwards;
     animation-delay: var(--confetti-delay, 0s);
+    pointer-events: none;
+    z-index: 9985;
 }
 
 /* Confetti shapes */
@@ -416,6 +444,11 @@
     opacity: 0.95;
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
     animation: motto-glow 2s ease-in-out infinite alternate;
+    width: 90%;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Animation for motto glow effect */

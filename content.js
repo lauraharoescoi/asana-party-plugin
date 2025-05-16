@@ -76,28 +76,28 @@ const CELEBRATIONS = {
     text: 'Small Victory!',
     className: 'celebration-small',
     emoji: '🎉',
-    gifCount: 2, // Number of GIFs to show for small tasks
+    gifCount: 3, // Number of GIFs to show for small tasks
     gifFolder: 'celebrations'
   },
   medium: {
     text: 'Good Job!',
     className: 'celebration-medium',
     emoji: '🚀',
-    gifCount: 3, // Number of GIFs to show for medium tasks
+    gifCount: 5, // Number of GIFs to show for medium tasks
     gifFolder: 'celebrations'
   },
   large: {
     text: 'Impressive!',
     className: 'celebration-large',
     emoji: '🏆',
-    gifCount: 4, // Number of GIFs to show for large tasks
+    gifCount: 7, // Number of GIFs to show for large tasks
     gifFolder: 'celebrations'
   },
   xlarge: {
     text: 'EPIC ACHIEVEMENT!',
     className: 'celebration-xlarge',
     emoji: '🎇✨',
-    gifCount: 6, // Number of GIFs to show for XL tasks
+    gifCount: 10, // Number of GIFs to show for XL tasks
     gifFolder: 'celebrations'
   },
   default: {
@@ -419,10 +419,6 @@ function showCelebration(taskSize, priority, team) {
         // Add the house-specific class to the celebration div
         celebrationDiv.classList.add(houseTheme.className);
         
-        // Create the celebration content with house theme
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'celebration-content';
-        
         // Get correct image URL using chrome.runtime.getURL if available
         let leftSigilUrl = houseTheme.sigilImg;
         let rightSigilUrl = houseTheme.sigilImg;
@@ -433,10 +429,13 @@ function showCelebration(taskSize, priority, team) {
             rightSigilUrl = chrome.runtime.getURL(houseTheme.sigilImg);
         }
         
+        // Create the celebration content with house theme
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'celebration-content';
         contentDiv.innerHTML = `
             <div class="celebration-title">
                 <img src="${leftSigilUrl}" alt="${team}" class="house-sigil left-sigil">
-                ${celebrationConfig.text}
+                <span class="celebration-title-text">${celebrationConfig.text}</span>
                 <img src="${rightSigilUrl}" alt="${team}" class="house-sigil right-sigil">
             </div>
             <div class="celebration-house-motto">"${houseTheme.quote}"</div>
@@ -453,7 +452,7 @@ function showCelebration(taskSize, priority, team) {
         contentDiv.innerHTML = `
             <div class="celebration-title">
                 <span class="celebration-emoji">${celebrationConfig.emoji}</span>
-                ${celebrationConfig.text}
+                <span class="celebration-title-text">${celebrationConfig.text}</span>
                 <span class="celebration-emoji">${celebrationConfig.emoji}</span>
             </div>
             <div class="celebration-message">${randomMessage}</div>
@@ -570,7 +569,7 @@ function showConfetti() {
  * @param {Function} callback - Callback with array of URLs
  */
 function loadGifsFromFolder(folderPath, callback) {
-    const maxGifsToCheck = 21; // Look for up to 21 GIFs
+    const maxGifsToCheck = 50; // Look for up to 47 GIFs
     const gifUrls = [];
     let checkedCount = 0;
     
@@ -640,30 +639,141 @@ function showGifCelebrations(count, folderPath) {
         const actualCount = Math.min(count, gifUrls.length);
         console.log(`Showing ${actualCount} GIFs from ${gifUrls.length} available`);
         
-        // Set up a grid distribution to better spread GIFs across the screen
-        const positions = [];
+        // Create a large pool of potential positions
+        const positionPool = [];
         
-        // Divide the screen into sections to place GIFs
-        const columns = Math.ceil(Math.sqrt(actualCount));
-        const rows = Math.ceil(actualCount / columns);
+        // Define an exclusion zone for the text container (center of screen)
+        const exclusionZone = {
+            centerX: 50,
+            centerY: 50,
+            radiusX: 25, // % from center horizontally - larger to avoid text container
+            radiusY: 30  // % from center vertically - larger to avoid text container
+        };
         
-        for (let row = 0; row < rows; row++) {
-            for (let col = 0; col < columns; col++) {
-                if (positions.length < actualCount) {
-                    // Add some randomness to grid positions
-                    positions.push({
-                        left: ((100 / columns) * col) + (Math.random() * 20 - 10) + (100 / columns / 2) + '%',
-                        top: ((100 / rows) * row) + (Math.random() * 20 - 10) + (100 / rows / 2) + '%',
-                    });
+        // Outer ring - positions closer to screen edges
+        for (let i = 0; i < 20; i++) {
+            const angle = (i / 20) * Math.PI * 2;
+            const distanceFromCenter = 40 + Math.random() * 15; // 40-55% from center (closer to edges)
+            const left = 50 + Math.cos(angle) * distanceFromCenter;
+            const top = 50 + Math.sin(angle) * distanceFromCenter;
+            positionPool.push({ left: left + '%', top: top + '%' });
+        }
+        
+        // Corner regions - extra GIFs in the corners where there's more space
+        // Top-left corner
+        for (let i = 0; i < 5; i++) {
+            const left = 5 + Math.random() * 20; // 5-25%
+            const top = 5 + Math.random() * 20; // 5-25%
+            positionPool.push({ left: left + '%', top: top + '%' });
+        }
+        
+        // Top-right corner
+        for (let i = 0; i < 5; i++) {
+            const left = 75 + Math.random() * 20; // 75-95%
+            const top = 5 + Math.random() * 20; // 5-25%
+            positionPool.push({ left: left + '%', top: top + '%' });
+        }
+        
+        // Bottom-left corner
+        for (let i = 0; i < 5; i++) {
+            const left = 5 + Math.random() * 20; // 5-25%
+            const top = 75 + Math.random() * 20; // 75-95%
+            positionPool.push({ left: left + '%', top: top + '%' });
+        }
+        
+        // Bottom-right corner
+        for (let i = 0; i < 5; i++) {
+            const left = 75 + Math.random() * 20; // 75-95%
+            const top = 75 + Math.random() * 20; // 75-95%
+            positionPool.push({ left: left + '%', top: top + '%' });
+        }
+        
+        // Edge positions - midpoints of edges
+        // Top edge
+        for (let i = 0; i < 3; i++) {
+            const left = 30 + Math.random() * 40; // 30-70%
+            const top = 5 + Math.random() * 10; // 5-15%
+            positionPool.push({ left: left + '%', top: top + '%' });
+        }
+        
+        // Bottom edge
+        for (let i = 0; i < 3; i++) {
+            const left = 30 + Math.random() * 40; // 30-70%
+            const top = 85 + Math.random() * 10; // 85-95%
+            positionPool.push({ left: left + '%', top: top + '%' });
+        }
+        
+        // Left edge
+        for (let i = 0; i < 3; i++) {
+            const left = 5 + Math.random() * 10; // 5-15%
+            const top = 30 + Math.random() * 40; // 30-70%
+            positionPool.push({ left: left + '%', top: top + '%' });
+        }
+        
+        // Right edge
+        for (let i = 0; i < 3; i++) {
+            const left = 85 + Math.random() * 10; // 85-95%
+            const top = 30 + Math.random() * 40; // 30-70%
+            positionPool.push({ left: left + '%', top: top + '%' });
+        }
+        
+        // Helper function to check if a position is within the exclusion zone
+        const isInExclusionZone = (pos) => {
+            const x = parseFloat(pos.left);
+            const y = parseFloat(pos.top);
+            
+            // Calculate the normalized distance from center
+            const dx = Math.abs(x - exclusionZone.centerX) / exclusionZone.radiusX;
+            const dy = Math.abs(y - exclusionZone.centerY) / exclusionZone.radiusY;
+            
+            // If the point is inside the ellipse
+            return (dx * dx + dy * dy) < 1;
+        };
+        
+        // Filter out positions that are within the exclusion zone
+        const validPositions = positionPool.filter(pos => !isInExclusionZone(pos));
+        
+        // Shuffle the valid positions
+        for (let i = validPositions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [validPositions[i], validPositions[j]] = [validPositions[j], validPositions[i]];
+        }
+        
+        // Select random positions from the pool, ensuring they're not too close to each other
+        const selectedPositions = [];
+        const minDistanceSquared = 15 * 15; // Minimum distance squared in percentage points
+        
+        // Helper function to calculate distance squared between two positions
+        const distanceSquared = (pos1, pos2) => {
+            const x1 = parseFloat(pos1.left);
+            const y1 = parseFloat(pos1.top);
+            const x2 = parseFloat(pos2.left);
+            const y2 = parseFloat(pos2.top);
+            return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+        };
+        
+        // Try to select as many positions as needed from valid positions
+        for (const position of validPositions) {
+            // Check if this position is far enough from all already selected positions
+            let isFarEnough = true;
+            for (const selectedPos of selectedPositions) {
+                if (distanceSquared(position, selectedPos) < minDistanceSquared) {
+                    isFarEnough = false;
+                    break;
+                }
+            }
+            
+            if (isFarEnough) {
+                selectedPositions.push(position);
+                if (selectedPositions.length >= actualCount) {
+                    break; // We have enough positions
                 }
             }
         }
         
-        // Shuffle the positions array for more randomness
-        for (let i = positions.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [positions[i], positions[j]] = [positions[j], positions[i]];
-        }
+        // If we couldn't find enough positions, just use what we have (this should be rare)
+        const positions = selectedPositions.length < actualCount ? 
+            validPositions.slice(0, actualCount) : selectedPositions;
         
         // Shuffle the gifUrls to get random ones each time
         const shuffledGifs = [...gifUrls];
@@ -686,18 +796,18 @@ function showGifCelebrations(count, folderPath) {
                 // Add class for entrance animation after a short delay
                 setTimeout(() => {
                     gifElement.classList.add('gif-visible');
-                }, 10 + (i * 100)); // Stagger the animations
+                }, 10 + (i * 150)); // Increased stagger time between animations
             };
             gifElement.src = gifUrl;
             
-            // Use the pre-calculated positions instead of completely random ones
-            const position = positions[i];
+            // Use the pre-calculated positions or fallback to a safe default
+            const position = positions[i] || { left: '5%', top: '5%' };
             const randomPosition = {
                 left: position.left,
                 top: position.top,
-                scale: 0.7 + Math.random() * 0.6, // 0.7 to 1.3 scale
-                rotation: (Math.random() * 20 - 10) + 'deg', // -10 to +10 degrees
-                delay: i * 0.1 // Staggered delay
+                scale: 0.8 + Math.random() * 0.4, // 0.8 to 1.2 scale 
+                rotation: (Math.random() * 10 - 5) + 'deg', // -5 to +5 degrees
+                delay: i * 0.15 // Staggered delay
             };
             
             gifElement.style.setProperty('--gif-left', randomPosition.left);
