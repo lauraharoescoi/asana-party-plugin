@@ -54,8 +54,374 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     sendResponse({status: "success"});
   }
   
+  if (request.action === "activatePartyMode") {
+    console.log('Party mode activated from popup request');
+    startPartyMode();
+    sendResponse({status: "success"});
+  }
+  
   return true; // Keep the message channel open for async response
 });
+
+// Party Mode variables
+let partyModeActive = false;
+let partyModeInterval = null;
+let discoLights = [];
+let musicElement = null;
+
+/**
+ * Starts the party mode in Asana
+ */
+function startPartyMode() {
+  if (partyModeActive) return; // Already in party mode
+  partyModeActive = true;
+  
+  // Create the party overlay container
+  const partyContainer = document.createElement('div');
+  partyContainer.id = 'asana-party-container';
+  partyContainer.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 99999; overflow: hidden;';
+  document.body.appendChild(partyContainer);
+  
+  // Create a click capture layer (with pointer-events enabled) for the entire screen
+  const clickLayer = document.createElement('div');
+  clickLayer.id = 'party-click-layer';
+  clickLayer.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: transparent; z-index: 99998; cursor: pointer; pointer-events: auto;';
+  partyContainer.appendChild(clickLayer);
+  
+  // Add click event to close party mode when clicking anywhere
+  clickLayer.addEventListener('click', stopPartyMode);
+  
+  // Display a brief message to let users know they can click anywhere to stop
+  const clickMessage = document.createElement('div');
+  clickMessage.textContent = 'Click anywhere to stop the party';
+  clickMessage.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 8px 16px; background: rgba(0,0,0,0.6); color: white; border-radius: 20px; font-size: 14px; pointer-events: none; z-index: 999999; opacity: 0; transition: opacity 0.5s;';
+  partyContainer.appendChild(clickMessage);
+  
+  // Show the message after a short delay and fade it out
+  setTimeout(() => {
+    clickMessage.style.opacity = '1';
+    setTimeout(() => {
+      clickMessage.style.opacity = '0';
+    }, 3000);
+  }, 1000);
+  
+  // Create disco lights
+  createDiscoLights(partyContainer);
+  
+  // Start floating emojis
+  createFloatingEmojis(partyContainer);
+  
+  // Create background music (if allowed by browser)
+  try {
+    musicElement = document.createElement('audio');
+    musicElement.src = chrome.runtime.getURL('celebrations/party-music.mp3');
+    musicElement.volume = 0.5;
+    musicElement.loop = true;
+    document.body.appendChild(musicElement);
+    
+    // Need user interaction to play audio in most browsers
+    const playMusicButton = document.createElement('button');
+    playMusicButton.textContent = '🔊 PLAY MUSIC';
+    playMusicButton.style.cssText = 'position: fixed; bottom: 20px; left: 20px; padding: 10px 15px; background: #3366ff; color: white; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.3); z-index: 999999; pointer-events: auto;';
+    partyContainer.appendChild(playMusicButton);
+    
+    playMusicButton.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent the event from reaching the click layer
+      musicElement.play()
+        .then(() => {
+          playMusicButton.style.display = 'none';
+        })
+        .catch(err => {
+          console.error('Could not play music:', err);
+          playMusicButton.textContent = '❌ MUSIC BLOCKED';
+        });
+    });
+  } catch (e) {
+    console.error('Could not create audio element:', e);
+  }
+  
+  // Apply party effects to Asana UI
+  partyModeInterval = setInterval(pulseAsanaElements, 1000);
+  
+  // Show confetti
+  showConfetti();
+  
+  // Add a random celebration every 10 seconds
+  setTimeout(() => {
+    if (partyModeActive) {
+      showGifCelebrations(5, 'celebrations', true);
+    }
+  }, 2000);
+  
+  const partyInterval = setInterval(() => {
+    if (partyModeActive) {
+      showGifCelebrations(3, 'celebrations', true);
+    } else {
+      clearInterval(partyInterval);
+    }
+  }, 10000);
+}
+
+/**
+ * Stops the party mode and cleans up all elements
+ */
+function stopPartyMode() {
+  if (!partyModeActive) return;
+  
+  partyModeActive = false;
+  
+  // Clear interval
+  if (partyModeInterval) {
+    clearInterval(partyModeInterval);
+    partyModeInterval = null;
+  }
+  
+  // Stop music
+  if (musicElement) {
+    musicElement.pause();
+    musicElement.remove();
+    musicElement = null;
+  }
+  
+  // Remove all disco lights
+  discoLights.forEach(light => {
+    if (light.parentNode) {
+      light.remove();
+    }
+  });
+  discoLights = [];
+  
+  // Remove all party elements
+  const partyContainer = document.getElementById('asana-party-container');
+  if (partyContainer) {
+    partyContainer.remove();
+  }
+  
+  // Remove all floating GIFs
+  removeAllGifCelebrations();
+  
+  // Remove confetti
+  const confettiContainer = document.querySelector('.confetti-container');
+  if (confettiContainer) {
+    confettiContainer.remove();
+  }
+  
+  // Remove any style elements added for animations
+  document.querySelectorAll('style[id^="party-"]').forEach(style => {
+    style.remove();
+  });
+  
+  // Reset any modified Asana UI elements
+  document.querySelectorAll('.asana-party-modified').forEach(el => {
+    el.classList.remove('asana-party-modified');
+    el.style.animation = '';
+    el.style.transform = '';
+    el.style.transition = '';
+    // Reset any other style properties that might have been modified
+    el.style.filter = '';
+    el.style.borderRadius = '';
+    el.style.border = '';
+    el.style.boxShadow = '';
+  });
+  
+  // Add a nice exit effect
+  const exitElement = document.createElement('div');
+  exitElement.textContent = 'Party Over!';
+  exitElement.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 60px; color: white; text-shadow: 0 0 10px #ff0099; z-index: 9999; opacity: 0; animation: fadeInOut 2s forwards; pointer-events: none;';
+  document.body.appendChild(exitElement);
+  
+  // Add the keyframe animation
+  const style = document.createElement('style');
+  style.id = 'party-exit-animation';
+  style.textContent = `
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Remove exit element after animation
+  setTimeout(() => {
+    exitElement.remove();
+    style.remove();
+    
+    // Final cleanup check - ensure no celebration elements are left
+    document.querySelectorAll('.floating-celebration-gif, .disco-light, [id^="asana-party"], [id^="party-"]').forEach(el => {
+      if (el.parentNode) el.remove();
+    });
+  }, 2000);
+}
+
+/**
+ * Creates colorful disco lights
+ */
+function createDiscoLights(container) {
+  const lightColors = ['#ff3366', '#ff6633', '#ffcc33', '#33cc33', '#3366ff', '#cc33ff', '#ff00cc'];
+  
+  // Create multiple light sources
+  for (let i = 0; i < 7; i++) {
+    const light = document.createElement('div');
+    light.className = 'disco-light';
+    light.style.cssText = `
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: ${lightColors[i % lightColors.length]};
+      filter: blur(40px);
+      opacity: 0.7;
+      mix-blend-mode: screen;
+      pointer-events: none;
+      z-index: 1;
+      animation: moveLight${i} 8s infinite alternate;
+    `;
+    
+    // Add custom animation for each light
+    const style = document.createElement('style');
+    const xStart = Math.random() * 100;
+    const yStart = Math.random() * 100;
+    const xEnd = Math.random() * 100;
+    const yEnd = Math.random() * 100;
+    
+    style.textContent = `
+      @keyframes moveLight${i} {
+        0% { transform: translate(${xStart}vw, ${yStart}vh) scale(1); }
+        50% { transform: translate(${(xStart + xEnd) / 2}vw, ${(yStart + yEnd) / 2}vh) scale(2); }
+        100% { transform: translate(${xEnd}vw, ${yEnd}vh) scale(1); }
+      }
+    `;
+    
+    document.head.appendChild(style);
+    container.appendChild(light);
+    discoLights.push(light);
+  }
+}
+
+/**
+ * Creates floating party emojis
+ */
+function createFloatingEmojis(container) {
+  const emojis = ['🎉', '🎊', '🎵', '🎸', '🎷', '🎺', '🥁', '💃', '🕺', '✨', '🎤'];
+  
+  // Create 20 floating emojis
+  for (let i = 0; i < 20; i++) {
+    const emoji = document.createElement('div');
+    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+    
+    emoji.textContent = randomEmoji;
+    emoji.style.cssText = `
+      position: absolute;
+      font-size: ${20 + Math.random() * 30}px;
+      opacity: ${0.5 + Math.random() * 0.5};
+      left: ${Math.random() * 100}vw;
+      top: 110vh;
+      animation: floatUp ${10 + Math.random() * 15}s linear infinite;
+      animation-delay: ${Math.random() * 20}s;
+      transform: rotate(${Math.random() * 360}deg);
+      pointer-events: none;
+      z-index: 2;
+    `;
+    
+    container.appendChild(emoji);
+  }
+  
+  // Add the animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes floatUp {
+      0% {
+        top: 110vh;
+        transform: translateX(0) rotate(0);
+      }
+      100% {
+        top: -50px;
+        transform: translateX(${-50 + Math.random() * 100}px) rotate(${Math.random() * 360}deg);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+/**
+ * Applies pulsing effects to Asana UI elements 
+ */
+function pulseAsanaElements() {
+  if (!partyModeActive) return;
+  
+  // Apply effects to various Asana UI elements
+  const targets = [
+    '.TopbarPageHeaderGlobalActions', // Top bar actions
+    '.CircleBadge', // Circle badges in Asana
+    '.TaskRow', // Task rows
+    '.ProjectsNavigation', // Project navigation
+    '.SidebarTeamSection', // Team sections
+    '.Avatar', // User avatars
+    '.BaseButton', // Buttons
+    '.Icon', // Icons
+    '.SearchBar', // Search bar
+    '.TopbarPageHeader-title', // Page header title
+  ];
+  
+  targets.forEach(selector => {
+    const elements = document.querySelectorAll(selector);
+    elements.forEach(el => {
+      if (!el.classList.contains('asana-party-modified')) {
+        el.classList.add('asana-party-modified');
+        
+        // Save original styles if needed
+        if (!el.dataset.originalTransition) {
+          el.dataset.originalTransition = el.style.transition || '';
+        }
+        
+        // Apply colorful effects
+        const hue = Math.floor(Math.random() * 360);
+        const animation = `colorPulse${Math.floor(Math.random() * 4)} ${2 + Math.random() * 3}s infinite`;
+        
+        el.style.transition = 'all 0.5s ease';
+        el.style.animation = animation;
+        
+        // Apply varying effects by element type
+        if (selector === '.TopbarPageHeaderGlobalActions' || selector === '.CircleBadge') {
+          el.style.transform = `scale(${1 + Math.random() * 0.1}) rotate(${Math.random() * 5}deg)`;
+        } else if (selector === '.Avatar') {
+          el.style.borderRadius = '20%'; // Make avatars less round
+          el.style.transform = `rotate(${Math.random() * 360}deg)`;
+        }
+      }
+    });
+  });
+  
+  // Add animations styles if not already added
+  if (!document.getElementById('party-animations')) {
+    const animStyle = document.createElement('style');
+    animStyle.id = 'party-animations';
+    animStyle.textContent = `
+      @keyframes colorPulse0 {
+        0% { filter: hue-rotate(0deg) brightness(1); }
+        50% { filter: hue-rotate(180deg) brightness(1.2); }
+        100% { filter: hue-rotate(360deg) brightness(1); }
+      }
+      @keyframes colorPulse1 {
+        0% { filter: hue-rotate(90deg) brightness(1.1); }
+        50% { filter: hue-rotate(270deg) brightness(0.9); }
+        100% { filter: hue-rotate(450deg) brightness(1.1); }
+      }
+      @keyframes colorPulse2 {
+        0% { filter: hue-rotate(180deg) brightness(1); }
+        50% { filter: hue-rotate(360deg) brightness(1.3); }
+        100% { filter: hue-rotate(540deg) brightness(1); }
+      }
+      @keyframes colorPulse3 {
+        0% { filter: hue-rotate(270deg) brightness(1.2); }
+        50% { filter: hue-rotate(450deg) brightness(0.8); }
+        100% { filter: hue-rotate(630deg) brightness(1.2); }
+      }
+    `;
+    document.head.appendChild(animStyle);
+  }
+}
 
 // Updated selectors based on latest Asana UI
 const TASK_ROW_SELECTOR = '.TaskPane'; 
@@ -474,7 +840,7 @@ function showCelebration(taskSize, priority, team) {
     showConfetti();
     
     // Add GIF celebrations based on task size
-    showGifCelebrations(celebrationConfig.gifCount, celebrationConfig.gifFolder);
+    showGifCelebrations(celebrationConfig.gifCount, celebrationConfig.gifFolder, false);
 
     // Entry animation - using CSS animations
     celebrationDiv.classList.add('celebration-visible');
@@ -627,8 +993,9 @@ function loadGifsFromFolder(folderPath, callback) {
  * Displays random floating GIFs on the screen
  * @param {number} count - Number of GIFs to display
  * @param {string} folderPath - Path to the folder containing GIFs
+ * @param {boolean} isPartyMode - Whether this is for party mode (allows center positioning)
  */
-function showGifCelebrations(count, folderPath) {
+function showGifCelebrations(count, folderPath, isPartyMode = false) {
     // Try to load the GIFs from the folder
     loadGifsFromFolder(folderPath, (gifUrls) => {
         if (!gifUrls || gifUrls.length === 0) {
@@ -643,12 +1010,23 @@ function showGifCelebrations(count, folderPath) {
         const positionPool = [];
         
         // Define an exclusion zone for the text container (center of screen)
+        // Only apply this for task completion celebrations, not for party mode
         const exclusionZone = {
             centerX: 50,
             centerY: 50,
-            radiusX: 25, // % from center horizontally - larger to avoid text container
-            radiusY: 30  // % from center vertically - larger to avoid text container
+            radiusX: isPartyMode ? 0 : 25, // No exclusion in party mode
+            radiusY: isPartyMode ? 0 : 30  // No exclusion in party mode
         };
+        
+        // If in party mode, add positions including the center area
+        if (isPartyMode) {
+            // Center area positions (only for party mode)
+            for (let i = 0; i < 10; i++) {
+                const left = 30 + Math.random() * 40; // 30-70%
+                const top = 30 + Math.random() * 40; // 30-70%
+                positionPool.push({ left: left + '%', top: top + '%' });
+            }
+        }
         
         // Outer ring - positions closer to screen edges
         for (let i = 0; i < 20; i++) {
@@ -719,6 +1097,9 @@ function showGifCelebrations(count, folderPath) {
         
         // Helper function to check if a position is within the exclusion zone
         const isInExclusionZone = (pos) => {
+            // If in party mode, no exclusion zone
+            if (isPartyMode) return false;
+            
             const x = parseFloat(pos.left);
             const y = parseFloat(pos.top);
             

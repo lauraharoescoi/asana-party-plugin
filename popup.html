@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Asana Celebrations</title>
+  <title>Asana Party Plugin</title>
   <meta charset="UTF-8">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; width: 250px; padding: 15px; text-align: center; color: #333; }
@@ -33,14 +33,58 @@
       border-radius: 4px;
       box-sizing: border-box;
     }
+    
+    /* Fun Button Styling */
+    .fun-btn {
+      background: linear-gradient(90deg, #ff00cc, #ff3366, #ff6633, #ffcc33, #33cc33, #3366ff, #cc33ff);
+      background-size: 400% 400%;
+      animation: gradient 5s ease infinite;
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+      margin: 15px 0;
+      cursor: pointer;
+      border-radius: 25px;
+      width: 100%;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+      transition: transform 0.2s;
+    }
+    
+    .fun-btn:hover {
+      transform: scale(1.05);
+    }
+    
+    .fun-btn:active {
+      transform: scale(0.98);
+    }
+    
+    .divider {
+      height: 2px;
+      background: linear-gradient(90deg, #f99, #9f9, #99f);
+      margin: 15px 0;
+      border-radius: 2px;
+    }
+    
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
   </style>
 </head>
 <body>
-  <h3>🎉 Asana Celebrations 🎉</h3>
+  <h3>🎉 Asana Party Plugin 🎉</h3>
   <p>This plugin is <span class="active">active</span> on Asana pages.</p>
   <input type="text" class="text-input" id="hacking-text" placeholder="Doing stuff...">
   <button class="toggle-btn" id="show-hacking">Activate hacking mode</button>
-  <p><small>Check the console to see the logs!</small></p>
+  
+  <div class="divider"></div>
+  
+  <button class="fun-btn" id="party-mode">🎊 PARTY MODE 🎊</button>
 
   <script src="popup.js"></script>
 </body>
