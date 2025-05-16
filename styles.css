@@ -1,0 +1,42 @@
+/* styles.css */
+/* You can define more complex CSS animations here if desired */
+
+/* Main celebration overlay styles */
+#asana-celebration-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    padding: 40px 60px;
+    border-radius: 20px;
+    color: white;
+    z-index: 10000;
+    font-size: 28px;
+    text-align: center;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+}
+
+/* Example of a basic "confetti" animation (would require more JS to create elements) */
+.confetti-piece {
+    position: absolute;
+    width: 8px;
+    height: 16px;
+    background: #f00; /* Change colors dynamically */
+    top: 0;
+    opacity: 0;
+    animation: fall 3s linear infinite;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 1;
+    }
+}
+
+/* The main celebration styles are in content.js for this example,
+   but you could move them here and add/remove classes with JS. */

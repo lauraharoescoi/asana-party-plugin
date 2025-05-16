@@ -1,0 +1,34 @@
+{
+    "manifest_version": 3,
+    "name": "Asana Task Celebrations",
+    "version": "0.1.1",
+    "description": "Shows a celebration when a task is completed in Asana, based on the Task Size and Priority.",
+    "permissions": [
+      "storage"
+    ],
+    "host_permissions": [
+      "*://app.asana.com/*"
+    ],
+    "content_scripts": [
+      {
+        "matches": ["*://app.asana.com/*"],
+        "js": ["content.js"],
+        "css": ["styles.css"]
+      }
+    ],
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "48": "icons/icon48.png"
+      }
+    },
+    "icons": {
+      "48": "icons/icon48.png"
+    },
+    "web_accessible_resources": [
+      {
+        "resources": ["celebrations/*"],
+        "matches": ["*://app.asana.com/*"]
+      }
+    ]
+  }
