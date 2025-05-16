@@ -15,9 +15,9 @@ const TASK_COMPLETED_CLASS = 'TaskRow--isCompleted, .SpreadsheetTaskCompletionSt
 // More comprehensive selector to catch the completion button in various Asana interfaces
 const TASK_COMPLETED_CHECKBOX_SELECTOR = 'div[role="button"].TaskCompletionToggleButton, div[role="button"].SpreadsheetTaskCompletionCell, div[aria-label*="Mark complete"], div[aria-label*="Marcar como"], .CheckboxButton, .TaskCompletionButton'; 
 
-const CUSTOM_FIELD_CONTAINER_SELECTOR = '.CustomPropertyRow';
-const CUSTOM_FIELD_LABEL_SELECTOR = '.CustomPropertyRow-title';
-const CUSTOM_FIELD_VALUE_SELECTOR = '.CustomPropertyEditableTokenCell-tokenName, .Pill-label';
+const CUSTOM_FIELD_CONTAINER_SELECTOR = '.TableRow';
+const CUSTOM_FIELD_LABEL_SELECTOR = '.LabeledRowStructure-left span';
+const CUSTOM_FIELD_VALUE_SELECTOR = '.LabeledRowStructure-right span';
 
 // Cooldown period to prevent double celebrations (in ms)
 const CELEBRATION_COOLDOWN = 4000;
