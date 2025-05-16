@@ -137,13 +137,14 @@ function findTaskNameFromElement(element) {
 }
 
 /**
- * Extracts Task Size and Priority from a task element.
+ * Extracts Task Size, Priority, and Team from a task element.
  */
 function getTaskDetails(taskRowElement) {
     let taskSize = null;
     let priority = null;
+    let team = null;
 
-    if (!taskRowElement) return { taskSize, priority };
+    if (!taskRowElement) return { taskSize, priority, team };
     
     // Strategy 1: Look in the custom fields section
     const customFields = document.querySelectorAll(CUSTOM_FIELD_CONTAINER_SELECTOR);
@@ -162,6 +163,8 @@ function getTaskDetails(taskRowElement) {
                 taskSize = value;
             } else if (label === 'Priority') {
                 priority = value;
+            } else if (label === 'Team') {
+                team = value;
             }
         }
     });
@@ -176,7 +179,7 @@ function getTaskDetails(taskRowElement) {
     }
 
     console.log(`Details extracted - Size: ${taskSize}, Priority: ${priority}`);
-    return { taskSize, priority };
+    return { taskSize, priority, team };
 }
 
 /**
@@ -185,12 +188,11 @@ function getTaskDetails(taskRowElement) {
 function processCompletedTask(taskElement) {
     // If already celebrated recently, skip
     if (taskElement && taskElement.dataset.celebratedRecently) {
-        console.log('Skipping celebration - already celebrated recently');
         return;
     }
     
-    const { taskSize, priority } = getTaskDetails(taskElement);
-    showCelebration(taskSize, priority);
+    const { taskSize, priority, team } = getTaskDetails(taskElement);
+    showCelebration(taskSize, priority, team);
     
     // Set cooldown flag if we have a task element
     if (taskElement) {
@@ -202,8 +204,8 @@ function processCompletedTask(taskElement) {
 /**
  * Shows the celebration.
  */
-function showCelebration(taskSize, priority) {
-    console.log(`Task completed! Size: ${taskSize}, Priority: ${priority}`);
+function showCelebration(taskSize, priority, team) {
+    console.log(`Task completed! Size: ${taskSize}, Priority: ${priority}, Team: ${team}`);
 
     const existingCelebration = document.getElementById('asana-celebration-overlay');
     if (existingCelebration) {
@@ -233,63 +235,181 @@ function showCelebration(taskSize, priority) {
     // Apply the corresponding CSS class
     celebrationDiv.classList.add(celebrationConfig.className);
     
+    // Game of Thrones house-themed content
+    const houseThemes = {
+        'Targaryen': {
+            emoji: '🐲',
+            quote: "Fire and Blood",
+            message: "A Targaryen victory! The dragon has conquered another task!",
+            className: "house-targaryen"
+        },
+        'Hightower': {
+            emoji: '🏰',
+            quote: "We Light the Way",
+            message: "Tower of knowledge and wisdom! Another task illuminated!",
+            className: "house-hightower"
+        },
+        'Tyrell': {
+            emoji: '🌹',
+            quote: "Growing Strong",
+            message: "The rose blooms with another completed task!",
+            className: "house-tyrell"
+        },
+        'Greyjoy': {
+            emoji: '🦑',
+            quote: "We Do Not Sow",
+            message: "What is dead may never die! Conquered like the Iron Islands!",
+            className: "house-greyjoy"
+        },
+        'Lannister': {
+            emoji: '🦁',
+            quote: "Hear Me Roar",
+            message: "A Lannister always completes their tasks!",
+            className: "house-lannister"
+        },
+        'Martell': {
+            emoji: '☀️',
+            quote: "Unbowed, Unbent, Unbroken",
+            message: "The sun of Dorne shines on your completed task!",
+            className: "house-martell"
+        },
+        'Mormont': {
+            emoji: '🐻',
+            quote: "Here We Stand",
+            message: "With the strength of Bear Island, another task falls!",
+            className: "house-mormont"
+        },
+        'Wildings': {
+            emoji: '❄️',
+            quote: "Free Folk",
+            message: "Beyond the Wall, your tasks are conquered with wild freedom!",
+            className: "house-wildlings"
+        },
+        'Tech': {
+            emoji: '💻',
+            quote: "Innovation is Coming",
+            message: "The maesters of technology have solved another problem!",
+            className: "house-tech"
+        }
+    };
+    
+    // Check if we have a matching house theme
+    let houseTheme = null;
+    if (team) {
+        Object.keys(houseThemes).forEach(houseName => {
+            if (team.includes(houseName)) {
+                houseTheme = houseThemes[houseName];
+            }
+        });
+    }
+    
     // Create motivational messages based on task size
     const motivationalMessages = {
         small: [
-            "Every small win counts!",
+            "Every small win adds up to big victories!",
             "Progress is progress, no matter how small.",
-            "Small steps lead to big results!",
-            "One task closer to your goals!"
+            "Small steps lead to massive results!",
+            "One task at a time is how legends are made.",
+            "The journey of excellence begins with small wins!"
         ],
         medium: [
-            "You're on a roll today!",
-            "Making meaningful progress!",
-            "Keep up the great momentum!",
-            "You're crushing it!"
+            "You're on fire today! Keep it up!",
+            "Making meaningful progress — incredible work!",
+            "Keep this momentum going! You're amazing!",
+            "You're crushing it! Next task, please!",
+            "That's how success happens — one task at a time!"
         ],
         large: [
-            "That was a big one - be proud!",
-            "Major achievement unlocked!",
-            "You've accomplished something significant!",
-            "You're unstoppable!"
+            "That was a big one — be incredibly proud!",
+            "Major achievement unlocked! You're unstoppable!",
+            "You've accomplished something truly significant!",
+            "Your dedication is inspiring! Celebrate this win!",
+            "Tackling the big challenges — that's what champions do!"
         ],
         xlarge: [
-            "PHENOMENAL ACHIEVEMENT!",
-            "MONUMENTAL SUCCESS!",
-            "YOU'RE ABSOLUTELY INCREDIBLE!",
-            "LEGENDARY PERFORMANCE!"
+            "PHENOMENAL ACHIEVEMENT! YOU'RE EXTRAORDINARY!",
+            "MONUMENTAL SUCCESS! NOTHING CAN STOP YOU!",
+            "YOU'RE ABSOLUTELY INCREDIBLE! KEEP SOARING!",
+            "LEGENDARY PERFORMANCE! HISTORY IN THE MAKING!",
+            "EXCEPTIONAL WORK! YOU'RE REDEFINING EXCELLENCE!"
         ],
         default: [
-            "Well done!",
-            "Great work!",
-            "Task mastered!",
-            "Keep it up!"
+            "Well done! Another step toward greatness!",
+            "Great work! Your consistent effort is paying off!",
+            "Task mastered! Your productivity is inspiring!",
+            "Keep it up! You're making incredible progress!",
+            "Success is built on completing one task at a time!"
         ]
+    };
+    
+    // Additional encouraging phrases based on task priority
+    const priorityPhrases = {
+        high: "Critical task completed with excellence!",
+        medium: "Important milestone achieved!",
+        low: "Another quality task completed!"
     };
     
     // Get random motivational message for the current task size
     const messages = motivationalMessages[size] || motivationalMessages.default;
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     
-    // Create the celebration content with enhanced structure
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'celebration-content';
-    contentDiv.innerHTML = `
-        <div class="celebration-title">
-            <span class="celebration-emoji">${celebrationConfig.emoji}</span>
-            ${celebrationConfig.text}
-            <span class="celebration-emoji">${celebrationConfig.emoji}</span>
-        </div>
-        <div class="celebration-message">"${randomMessage}"</div>
-        <div class="celebration-details">Priority: ${priority || 'N/A'}</div>
-    `;
+    // Determine priority phrase if available
+    let priorityPhrase = "";
+    if (priority) {
+        const priorityLower = priority.toLowerCase();
+        if (priorityLower.includes("1") || priorityLower.includes("high") || priorityLower.includes("urgent")) {
+            priorityPhrase = priorityPhrases.high;
+        } else if (priorityLower.includes("2") || priorityLower.includes("medium")) {
+            priorityPhrase = priorityPhrases.medium;
+        } else {
+            priorityPhrase = priorityPhrases.low;
+        }
+    }
     
-    // Add dark overlay and content
+    // If we have a house theme, apply it
+    if (houseTheme) {
+        // Add the house-specific class to the celebration div
+        celebrationDiv.classList.add(houseTheme.className);
+        
+        // Create the celebration content with house theme
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'celebration-content';
+        contentDiv.innerHTML = `
+            <div class="celebration-title">
+                <span class="celebration-emoji">${houseTheme.emoji}</span>
+                ${celebrationConfig.text}
+                <span class="celebration-emoji">${houseTheme.emoji}</span>
+            </div>
+            <div class="celebration-house-motto">"${houseTheme.quote}"</div>
+            <div class="celebration-message">${houseTheme.message}</div>
+            <div class="celebration-divider"></div>
+            <div class="celebration-details">${priorityPhrase || 'Priority: ' + (priority || 'N/A')}</div>
+        `;
+        
+        celebrationDiv.appendChild(contentDiv);
+    } else {
+        // Create the standard celebration content
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'celebration-content';
+        contentDiv.innerHTML = `
+            <div class="celebration-title">
+                <span class="celebration-emoji">${celebrationConfig.emoji}</span>
+                ${celebrationConfig.text}
+                <span class="celebration-emoji">${celebrationConfig.emoji}</span>
+            </div>
+            <div class="celebration-message">${randomMessage}</div>
+            <div class="celebration-divider"></div>
+            <div class="celebration-details">${priorityPhrase || 'Priority: ' + (priority || 'N/A')}</div>
+        `;
+        
+        celebrationDiv.appendChild(contentDiv);
+    }
+    
+    // Add dark overlay
     const overlayDiv = document.createElement('div');
     overlayDiv.className = 'celebration-overlay';
+    celebrationDiv.insertBefore(overlayDiv, celebrationDiv.firstChild);
     
-    celebrationDiv.appendChild(overlayDiv);
-    celebrationDiv.appendChild(contentDiv);
     document.body.appendChild(celebrationDiv);
 
     // Add confetti effect
