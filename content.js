@@ -9,6 +9,54 @@ try {
   console.error('Plugin initialization error:', err);
 }
 
+// Listen for messages from the popup
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  console.log('Message received in content script:', request);
+  
+  if (request.action === "showCelebration") {
+    console.log('Showing celebration from popup request');
+    // Show a large celebration
+    showCelebration("xlarge", "P1 - Urgent", "Tech");
+    sendResponse({status: "success"});
+  }
+  
+  if (request.action === "showGif") {
+    console.log('Showing GIF from popup request');
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999999; display: flex; justify-content: center; align-items: center;';
+    
+    const gif = document.createElement('img');
+    gif.src = chrome.runtime.getURL('celebrations/hacking.gif');
+    gif.style.cssText = 'width: 70%; height: 70%; object-fit: contain;';
+    
+    const textOverlay = document.createElement('div');
+    textOverlay.textContent = request.text || 'doing stuff...';
+    textOverlay.style.cssText = 'position: absolute; bottom: 50%; left: 50%; transform: translateX(-50%); color: white; font-size: 32px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;';
+    
+    // Request screen wake lock
+    chrome.runtime.sendMessage({action: "requestWakeLock"}, function(response) {
+        console.log('Wake lock requested:', response);
+    });
+    
+    // Add click handler to close the overlay
+    overlay.addEventListener('click', () => {
+        // Release wake lock when closing
+        chrome.runtime.sendMessage({action: "releaseWakeLock"}, function(response) {
+            console.log('Wake lock released:', response);
+        });
+        overlay.remove();
+    });
+    
+    overlay.appendChild(gif);
+    overlay.appendChild(textOverlay);
+    document.body.appendChild(overlay);
+    
+    sendResponse({status: "success"});
+  }
+  
+  return true; // Keep the message channel open for async response
+});
+
 // Updated selectors based on latest Asana UI
 const TASK_ROW_SELECTOR = '.TaskPane'; 
 const TASK_COMPLETED_CLASS = 'TaskRow--isCompleted, .SpreadsheetTaskCompletionStatus--completed';

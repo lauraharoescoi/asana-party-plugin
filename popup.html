@@ -8,11 +8,40 @@
     h3 { margin-top: 0; color: #141414; }
     p { font-size: 14px; line-height: 1.5; }
     .active { color: green; font-weight: bold; }
+    .toggle-btn {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+      margin: 10px 0;
+      cursor: pointer;
+      border-radius: 4px;
+      width: 100%;
+    }
+    .toggle-btn:hover {
+      background-color: #45a049;
+    }
+    .text-input {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
   <h3>🎉 Asana Celebrations 🎉</h3>
   <p>This plugin is <span class="active">active</span> on Asana pages.</p>
+  <input type="text" class="text-input" id="hacking-text" placeholder="Doing stuff...">
+  <button class="toggle-btn" id="show-hacking">Activate hacking mode</button>
   <p><small>Check the console to see the logs!</small></p>
+
+  <script src="popup.js"></script>
 </body>
 </html>
